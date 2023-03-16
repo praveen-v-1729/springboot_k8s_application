@@ -78,7 +78,7 @@ pipeline {
      		}
 			} 	    
         }
-		tage('Build Dockerfile') {
+		stage('Build Dockerfile') {
             steps {
                 script {
                     // Define the path to the jar file in the Jenkins workspace
