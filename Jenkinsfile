@@ -69,29 +69,27 @@ pipeline {
             }
         }
 		stage('Build Maven'){
-            when {
- 				expression { params.action == 'create' }
- 				}
+            when { expression { params.action == 'create' } }
      		steps {
-     	script{
+     	   script{
          		mvnBuild()
      		}
 			} 	    
         }
-		stage('Build Dockerfile') {
-            steps {
+        tage("Docker Build and Push") {
+	        steps {
+	            script {
+	                dockerBuild ( "${params.ImageName}", "${params.docker_repo}" )
+	            }
+	        }
+	    }
+	    stage("Docker CleanUP") {
+	        steps {
                 script {
-                    // Define the path to the jar file in the Jenkins workspace
-                    def jarFilePath = "${env.WORKSPACE}/shared_lib_application/target/*.jar"
+	            dockerCleanup ( "${params.ImageName}", "${params.docker_repo}" )
+			}
+          }
+		}
 
-		            // Set the Docker build argument to the jar file path
-                    def dockerBuildArgs = "--build-arg JAR_FILE=${jarFilePath}"
-
-                    // Build the Docker image using the `docker` CLI and pass the build argument
-                    sh "docker build ${dockerBuildArgs} -t my-image ."
-
-                }
-            }
-        }
     }
 }
