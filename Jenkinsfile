@@ -8,10 +8,10 @@ pipeline {
   
   parameters {
 	choice(name: 'action', choices: 'create\nrollback', description: 'Create/rollback of the deployment')
-    //string(name: 'ImageName', description: "Name of the docker build")
-	//string(name: 'ImageTag', description: "Name of the docker build")
-	//string(name: 'AppName', description: "Name of the Application")
-   //string(name: 'docker_repo', description: "Name of docker repository")
+    string(name: 'ImageName', description: "Name of the docker build", defaultValue: 'javaapp')
+	string(name: 'ImageTag', description: "Name of the docker build", defaultValue: 'v1')
+	string(name: 'AppName', description: "Name of the Application", defaultValue: 'springBoot')
+    string(name: 'docker_repo', description: "Name of docker repository", defaultValue: 'vikashashoke')
   }
       
     stages {
@@ -76,13 +76,31 @@ pipeline {
      		}
 			} 	    
         }
-        tage("Docker Build and Push") {
+        // DockerHub
+        stage("Docker Image Build") {
 	        steps {
 	            script {
 	                dockerBuild ( "${params.ImageName}", "${params.docker_repo}" )
 	            }
 	        }
 	    }
+        // DockerHub
+        stage("Docker Image Scanning") {
+	        steps {
+	            script {
+	                dockerImageScan ( "${params.ImageName}", "${params.docker_repo}" )
+	            }
+	        }
+	    }
+        // DockerHub
+        stage("Docker Image Push") {
+	        steps {
+	            script {
+	                dockerPush ( "${params.ImageName}", "${params.docker_repo}" )
+	            }
+	        }
+	    }
+        // DockerHub
 	    stage("Docker CleanUP") {
 	        steps {
                 script {
