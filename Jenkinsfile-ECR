@@ -72,50 +72,50 @@ pipeline {
     //             }
     //         }
     //     }
-		stage('Build Maven'){
-            when { expression { params.action == 'create' } }
-     		steps {
-     	   script{
-         		mvnBuild()
-     		}
-			} 	    
-        }
-        stage("Docker Image Build") {
-	        steps {
-	            script {
-	                dockerBuild (  "${params.docker_repo}", "${params.aws_region}", "${params.aws_account_id}" )
-	            }
-	        }
-	    }
+		// stage('Build Maven'){
+        //     when { expression { params.action == 'create' } }
+     	// 	steps {
+     	//    script{
+        //  		mvnBuild()
+     	// 	}
+		// 	} 	    
+        // }
+        // stage("Docker Image Build") {
+	    //     steps {
+	    //         script {
+	    //             dockerBuild (  "${params.docker_repo}", "${params.aws_region}", "${params.aws_account_id}" )
+	    //         }
+	    //     }
+	    // }
 
-        stage("Docker Image Scanning") {
-	        steps {
-	            script {
-	                dockerImageScan ( "${params.docker_repo}", "${params.aws_region}", "${params.aws_account_id}")
-	            }
-	        }
-	    }
+        // stage("Docker Image Scanning") {
+	    //     steps {
+	    //         script {
+	    //             dockerImageScan ( "${params.docker_repo}", "${params.aws_region}", "${params.aws_account_id}")
+	    //         }
+	    //     }
+	    // }
 
-        stage("Docker Image Push") {
-	        steps {
-	            script {
-	                sh """
-	                    aws configure set aws_access_key_id $ACCESS_KEY
-                        aws configure set aws_secret_access_key $SECRET_KEY
-                        aws configure set region ${params.aws_region}
-	                """
-	                dockerPush ( "${params.docker_repo}", "${params.aws_region}", "${params.aws_account_id}" )
-	            }
-	        }
-	    }
+        // stage("Docker Image Push") {
+	    //     steps {
+	    //         script {
+	    //             sh """
+	    //                 aws configure set aws_access_key_id $ACCESS_KEY
+        //                 aws configure set aws_secret_access_key $SECRET_KEY
+        //                 aws configure set region ${params.aws_region}
+	    //             """
+	    //             dockerPush ( "${params.docker_repo}", "${params.aws_region}", "${params.aws_account_id}" )
+	    //         }
+	    //     }
+	    // }
 
-	    stage("Docker CleanUP") {
-	        steps {
-                script {
-	            dockerCleanup ( "${params.docker_repo}", "${params.aws_region}", "${params.aws_account_id}" )
-			}
-          }
-		}
+	    // stage("Docker CleanUP") {
+	    //     steps {
+        //         script {
+	    //         dockerCleanup ( "${params.docker_repo}", "${params.aws_region}", "${params.aws_account_id}" )
+		// 	}
+        //   }
+		// }
             stage('Create EKS Cluster') {
             steps {
                 script {
