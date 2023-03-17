@@ -6,10 +6,11 @@ pipeline {
   agent any
   
   parameters {
-	choice(name: 'action', choices: 'create\nrollback', description: 'Create/rollback of the deployment')
+	choice(name: 'action', choices: 'create\ndelete', description: 'Create/delete of the deployment')
     string(name: 'docker_repo', description: "Name of docker repository", defaultValue: 'vikashashoke')
     string(name: 'aws_region', description: "region of ECR repository", defaultValue: 'us-east-1')
     string(name: 'aws_account_id', description: "AWS ACCOUNT ID of ECR repository", defaultValue: '496157679619')
+    string(name: 'cluster', defaultValue: 'demo-cluster', description: 'Choose EKS Cluster Nane')
   }
   environment{
 
@@ -115,6 +116,59 @@ pipeline {
 			}
           }
 		}
+            stage('Create EKS Cluster') {
+            steps {
+                script {
+                        sh """
+                        cd eks_module
+                        pwd
+                        terraform init
+                        terraform plan -var 'access_key=$ACCESS_KEY' -var 'secret_key=$SECRET_KEY' -var 'region=${params.aws_region}'  --var-file=./config/terraform.tfvars
+                        terraform apply -var 'access_key=$ACCESS_KEY' -var 'secret_key=$SECRET_KEY' -var 'region=${params.aws_region}'  --var-file=./config/terraform.tfvars --auto-approve
+                        """
+                }
+            }
+        }
+        stage('Connect with Cluster'){
+
+        steps{
+
+            script{
+
+                sh """
+                aws configure set aws_access_key_id "$ACCESS_KEY"
+                aws configure set aws_secret_access_key "$SECRET_KEY"
+                aws configure set region "${params.region}"
+                aws eks --region ${params.region} update-kubeconfig --name ${params.cluster}
+                """
+            }
+        }
+      }
+        stage('Deployment on eks cluster'){
+
+        when{ expression { params.action == 'apply'} }
+
+        steps{
+
+            script{
+
+               def apply = false
+
+               try{
+                input message: 'please confirm apply to initiate the deployment',  ok: 'Ready to apply the config ?'
+                apply = true
+               }catch(err){
+                apply = false
+                currentBuild.result ='UNSTABLE'
+               }
+               if(apply){
+                sh """
+                    kubectl apply -f .
+                """
+               }
+            }
+        }
+    }
 
     }
 }
