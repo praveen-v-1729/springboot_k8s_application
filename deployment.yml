@@ -1,18 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kubernetes-configmap-reload
+  name: myjavaapp-deployment
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: myjavaapp
   template:
     metadata:
       labels:
-        app: kubernetes-configmap-reload
+        app: myjavaapp
     spec:
       containers:
-      - image: "496157679619.dkr.ecr.us-east-1.amazonaws.com/vikashashoke:latest"
-        name: kubernetes-configmap-reload
+      - name: myjavaapp
+        image: 496157679619.dkr.ecr.us-east-1.amazonaws.com/vikashashoke:latest
         ports:
         - containerPort: 8080
-          name: http
 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myjavaapp-service
+spec:
+  selector:
+    app: myjavaapp
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
